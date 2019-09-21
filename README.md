@@ -10,7 +10,7 @@
 
     //或者
 
-        node server 8888
+    node server 8888
 ```
 ### 添加路由
    1. 打开 server.js，添加 if else
