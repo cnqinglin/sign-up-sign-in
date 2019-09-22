@@ -8,6 +8,10 @@ if(!port){
   process.exit(1)
 }
 
+let sessions = {
+
+}
+
 var server = http.createServer(function(request, response){
   var parsedUrl = url.parse(request.url, true)
   var pathWithQuery = request.url 
@@ -23,7 +27,10 @@ var server = http.createServer(function(request, response){
 
   if(path === '/'){
     let string = fs.readFileSync('./index.html', 'utf8')
-    let cookies =  request.headers.cookie.split('; ') // ['email=1@', 'a=1', 'b=2']
+    let cookies = ''
+    if(request.headers.cookie){
+      cookies = request.headers.cookie.split('; ') // ['email=1@', 'a=1', 'b=2']
+    }
     let hash = {}
     for(let i =0;i<cookies.length; i++){
       let parts = cookies[i].split('=')
@@ -57,7 +64,7 @@ var server = http.createServer(function(request, response){
     response.setHeader('Content-Type', 'text/html;charset=utf-8')
     response.write(string)
     response.end()
-  }else if(path === '/sign_up' && method === 'POST'){
+  }else if(path === '/sign_up' && method === 'POST'){   //注册
     readBody(request).then((body)=>{
       let strings = body.split('&') // ['email=1', 'password=2', 'password_confirmation=3']
       let hash = {}
@@ -113,7 +120,7 @@ var server = http.createServer(function(request, response){
     response.setHeader('Content-Type', 'text/html;charset=utf-8')
     response.write(string)
     response.end()
-  }else if(path==='/sign_in' && method === 'POST'){
+  }else if(path==='/sign_in' && method === 'POST'){ //登录
     readBody(request).then((body)=>{
       let strings = body.split('&') // ['email=1', 'password=2', 'password_confirmation=3']
       let hash = {}
@@ -139,7 +146,9 @@ var server = http.createServer(function(request, response){
         }
       }
       if(found){
-        response.setHeader('Set-Cookie', `sign_in_email=${email}`)
+        let sessionId = Math.random() * 100000
+        sessions[sessionId] = {sign_in_email:email}  //不把email直接放在Cookie,而是放在session里面
+        response.setHeader('Set-Cookie', `sign_in_email=${sessionId}`)  //设置Cookie，但是只给拥有email的sessionId
         response.statusCode = 200
       }else{
         response.statusCode = 401
